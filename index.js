@@ -1,4 +1,3 @@
-require("dotenv").config();
 const fs = require("fs");
 const {
     Client,
@@ -12,6 +11,7 @@ const {
     TextInputStyle,
     InteractionType
 } = require("discord.js");
+const token = process.env.TOKEN
 
 // ================== تشغيل العميل ==================
 const client = new Client({
@@ -178,3 +178,4 @@ client.on("interactionCreate", async (i) => {
 // ================== تشغيل ==================
 console.log("TOKEN:", process.env.TOKEN);
 client.login(process.env.TOKEN);
+

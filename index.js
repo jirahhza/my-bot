@@ -1,82 +1,81 @@
-require("dotenv").config();
 const {
   Client,
   GatewayIntentBits,
-  Partials,
+  EmbedBuilder,
   ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  EmbedBuilder
-} = require("discord.js");
+  StringSelectMenuBuilder,
+  Events
+} = require('discord.js');
 
 const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMembers
-  ],
-  partials: [Partials.Channel]
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers]
 });
 
-client.once("ready", async () => {
-  console.log(`✅ Logged in as ${client.user.tag}`);
+// حط هنا كل الرولات الخاصة بالمستويات
+const levelRoles = [
+  'ROLE_ID_1',
+  'ROLE_ID_2',
+  'ROLE_ID_3',
+  'ROLE_ID_4',
+  'ROLE_ID_5',
+  'ROLE_ID_6',
+  'ROLE_ID_7',
+  'ROLE_ID_8',
+  'ROLE_ID_9',
+  'ROLE_ID_10'
+];
 
-  // تسجيل أمر السلاش
-  await client.application.commands.set([
-    {
-      name: "panel",
-      description: "إرسال لوحة الرتب"
-    }
-  ]);
+client.once(Events.ClientReady, async () => {
+  const channel = await client.channels.fetch('1349906852909027399'); // ايدي الروم
+
+  const embed = new EmbedBuilder()
+    .setColor('#2b2d31')
+    .setImage('https://cdn.discordapp.com/attachments/1354053278081613824/1476625407540334592/Fate.png?ex=69a1ce13&is=69a07c93&hm=9a5c4149968382898cbc6ffd6d13bf38dd8a7de88e407bfedcdb9a072ca892c0&'); // رابط الصورة
+
+  const selectMenu = new ActionRowBuilder().addComponents(
+    new StringSelectMenuBuilder()
+      .setCustomId('level_select')
+      .setPlaceholder('اختر اللون المناسب لك')
+      .addOptions(
+        { label: '1', value: 'ROLE_ID_1' },
+        { label: '2', value: 'ROLE_ID_2' },
+        { label: '3', value: 'ROLE_ID_3' },
+        { label: '4', value: 'ROLE_ID_4' },
+        { label: '5', value: 'ROLE_ID_5' },
+        { label: '6', value: 'ROLE_ID_6' },
+        { label: '7', value: 'ROLE_ID_7' },
+        { label: '8', value: 'ROLE_ID_8' },
+        { label: '9', value: 'ROLE_ID_9' },
+        { label: '10', value: 'ROLE_ID_10' }
+      )
+  );
+
+  await channel.send({
+    embeds: [embed],
+    components: [selectMenu]
+  });
 });
 
-client.on("interactionCreate", async interaction => {
+client.on(Events.InteractionCreate, async interaction => {
+  if (!interaction.isStringSelectMenu()) return;
 
-  // أمر السلاش /panel
-  if (interaction.isChatInputCommand()) {
-    if (interaction.commandName === "panel") {
+  const member = interaction.member;
+  const selectedRoleId = interaction.values[0];
 
-      const embed = new EmbedBuilder()
-        .setColor("#2b2d31")
-        .setImage("https://cdn.discordapp.com/attachments/1354053278081613824/1476625407540334592/Fate.png?ex=69a1ce13&is=69a07c93&hm=9a5c4149968382898cbc6ffd6d13bf38dd8a7de88e407bfedcdb9a072ca892c0&") // رابط الصورة
-        .setFooter({ text: "VanctaCrew" });
-
-      const row1 = new ActionRowBuilder()
-        .addComponents(
-          new ButtonBuilder().setCustomId("1").setLabel("1").setStyle(ButtonStyle.Secondary),
-          new ButtonBuilder().setCustomId("2").setLabel("2").setStyle(ButtonStyle.Secondary),
-          new ButtonBuilder().setCustomId("3").setLabel("3").setStyle(ButtonStyle.Success),
-          new ButtonBuilder().setCustomId("4").setLabel("4").setStyle(ButtonStyle.Primary),
-          new ButtonBuilder().setCustomId("5").setLabel("5").setStyle(ButtonStyle.Primary),
-        );
-
-      const row2 = new ActionRowBuilder()
-        .addComponents(
-          new ButtonBuilder().setCustomId("6").setLabel("6").setStyle(ButtonStyle.Danger),
-          new ButtonBuilder().setCustomId("7").setLabel("7").setStyle(ButtonStyle.Secondary),
-          new ButtonBuilder().setCustomId("8").setLabel("8").setStyle(ButtonStyle.Secondary),
-          new ButtonBuilder().setCustomId("9").setLabel("9").setStyle(ButtonStyle.Secondary),
-          new ButtonBuilder().setCustomId("10").setLabel("10").setStyle(ButtonStyle.Secondary),
-        );
-
-      return interaction.reply({
-        embeds: [embed],
-        components: [row1, row2]
-      });
+  // يشيل أي رول من نفس القائمة
+  for (const roleId of levelRoles) {
+    if (member.roles.cache.has(roleId)) {
+      await member.roles.remove(roleId);
     }
   }
 
-  // عند الضغط على زر
-  if (interaction.isButton()) {
-    const role = interaction.guild.roles.cache.find(r => r.name === interaction.customId);
+  // يعطي الرول الجديد
+  await member.roles.add(selectedRoleId);
 
-    if (!role) {
-      return interaction.reply({ content: "❌ الرتبة غير موجودة", ephemeral: true });
-    }
-
-    await interaction.member.roles.add(role);
-
-    return interaction.reply({ content: `✅ تم إعطائك رتبة ${role.name}`, ephemeral: true });
-  }
+  await interaction.reply({
+    content: 'تم تحديث رولك ✅',
+    ephemeral: true
+  });
 });
 
 client.login(process.env.TOKEN);

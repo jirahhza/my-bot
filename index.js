@@ -4,49 +4,57 @@ const {
   EmbedBuilder,
   ActionRowBuilder,
   StringSelectMenuBuilder,
-  Events
+  Events,
+  PermissionsBitField
 } = require('discord.js');
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers]
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers
+  ]
 });
 
-// حط هنا كل الرولات الخاصة بالمستويات
-const levelRoles = [
-  'ROLE_ID_1',
-  'ROLE_ID_2',
-  'ROLE_ID_3',
-  'ROLE_ID_4',
-  'ROLE_ID_5',
-  'ROLE_ID_6',
-  'ROLE_ID_7',
-  'ROLE_ID_8',
-  'ROLE_ID_9',
-  'ROLE_ID_10'
-];
+/* ========= الاعدادات ========= */
+
+const CONFIG = {
+  channelId: '1349906852909027399',
+  imageUrl: 'file:///C:/Users/EdarhNet/OneDrive/%D8%B3%D8%B7%D8%AD%20%D8%A7%D9%84%D9%85%D9%83%D8%AA%D8%A8/Fate.png',
+  roleIds: [
+    'ROLE_ID_1',
+    'ROLE_ID_2',
+    'ROLE_ID_3',
+    'ROLE_ID_4',
+    'ROLE_ID_5',
+    'ROLE_ID_6',
+    'ROLE_ID_7',
+    'ROLE_ID_8',
+    'ROLE_ID_9',
+    'ROLE_ID_10'
+  ]
+};
+
+/* ========= عند تشغيل البوت ========= */
 
 client.once(Events.ClientReady, async () => {
-  const channel = await client.channels.fetch('1349906852909027399'); // ايدي الروم
+  console.log(`✅ Logged in as ${client.user.tag}`);
+
+  const channel = await client.channels.fetch(CONFIG.channelId).catch(() => null);
+  if (!channel) return console.log('❌ لم يتم العثور على الروم');
 
   const embed = new EmbedBuilder()
     .setColor('#2b2d31')
-    .setImage('file:///C:/Users/EdarhNet/OneDrive/%D8%B3%D8%B7%D8%AD%20%D8%A7%D9%84%D9%85%D9%83%D8%AA%D8%A8/Fate.png'); // رابط الصورة
+    .setImage(CONFIG.imageUrl);
 
   const selectMenu = new ActionRowBuilder().addComponents(
     new StringSelectMenuBuilder()
       .setCustomId('level_select')
       .setPlaceholder('اختر اللون المناسب لك')
       .addOptions(
-        { label: '1', value: 'ROLE_ID_1' },
-        { label: '2', value: 'ROLE_ID_2' },
-        { label: '3', value: 'ROLE_ID_3' },
-        { label: '4', value: 'ROLE_ID_4' },
-        { label: '5', value: 'ROLE_ID_5' },
-        { label: '6', value: 'ROLE_ID_6' },
-        { label: '7', value: 'ROLE_ID_7' },
-        { label: '8', value: 'ROLE_ID_8' },
-        { label: '9', value: 'ROLE_ID_9' },
-        { label: '10', value: 'ROLE_ID_10' }
+        CONFIG.roleIds.map((id, index) => ({
+          label: `${index + 1}`,
+          value: id
+        }))
       )
   );
 
@@ -56,26 +64,64 @@ client.once(Events.ClientReady, async () => {
   });
 });
 
+/* ========= عند اختيار رول ========= */
+
 client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isStringSelectMenu()) return;
+  if (interaction.customId !== 'level_select') return;
 
   const member = interaction.member;
+  const guild = interaction.guild;
   const selectedRoleId = interaction.values[0];
 
-  // يشيل أي رول من نفس القائمة
-  for (const roleId of levelRoles) {
-    if (member.roles.cache.has(roleId)) {
-      await member.roles.remove(roleId);
-    }
+  const botMember = guild.members.me;
+
+  // تأكد من صلاحية Manage Roles
+  if (!botMember.permissions.has(PermissionsBitField.Flags.ManageRoles)) {
+    return interaction.reply({
+      content: '❌ البوت ما عنده صلاحية Manage Roles',
+      ephemeral: true
+    });
   }
 
-  // يعطي الرول الجديد
-  await member.roles.add(selectedRoleId);
+  const role = guild.roles.cache.get(selectedRoleId);
+  if (!role) {
+    return interaction.reply({
+      content: '❌ الرول غير موجود',
+      ephemeral: true
+    });
+  }
 
-  await interaction.reply({
-    content: 'تم تحديث رولك ✅',
-    ephemeral: true
-  });
+  if (role.position >= botMember.roles.highest.position) {
+    return interaction.reply({
+      content: '❌ رتبة البوت لازم تكون أعلى من الرتب',
+      ephemeral: true
+    });
+  }
+
+  try {
+    // إزالة كل رولات المستويات السابقة
+    const rolesToRemove = member.roles.cache.filter(r =>
+      CONFIG.roleIds.includes(r.id)
+    );
+
+    await member.roles.remove(rolesToRemove);
+
+    // إضافة الرول الجديد
+    await member.roles.add(role);
+
+    await interaction.reply({
+      content: `✅ تم تحديث مستواك إلى ${role.name}`,
+      ephemeral: true
+    });
+
+  } catch (err) {
+    console.error(err);
+    await interaction.reply({
+      content: '❌ حصل خطأ أثناء تحديث الرول',
+      ephemeral: true
+    });
+  }
 });
 
 client.login(process.env.TOKEN);

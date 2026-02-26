@@ -78,7 +78,7 @@ client.on('interactionCreate', async interaction => {
 
     // الرسالة تكون بين العضو والبوت فقط
     await interaction.reply({
-      content: `✅ تم تحديث مستواك إلى ${role.name}`,
+      content: `**تم تغير اللون .** ${role.name}`,
       ephemeral: true
     });
 
@@ -90,5 +90,6 @@ client.on('interactionCreate', async interaction => {
 });
 
 client.login(process.env.TOKEN);
+
 
 

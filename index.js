@@ -26,11 +26,6 @@ const CONFIG = {
     '1476631739957776505', // ROLE_ID_3
     '1476631747025309930', // ROLE_ID_4
     '1476631754860134622', // ROLE_ID_5
-    '987654321098765432', // ROLE_ID_6
-    '987654321098765432', // ROLE_ID_7
-    '987654321098765432', // ROLE_ID_8
-    '987654321098765432', // ROLE_ID_9
-    '987654321098765432', // ROLE_ID_10
   ]
 };
 
@@ -117,3 +112,4 @@ client.on(Events.InteractionCreate, async interaction => {
 });
 
 client.login(process.env.TOKEN);
+

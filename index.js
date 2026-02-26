@@ -6,7 +6,7 @@ const {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
-  StringSelectMenuBuilder
+  EmbedBuilder
 } = require("discord.js");
 
 const client = new Client({
@@ -31,17 +31,13 @@ client.once("ready", async () => {
 
 client.on("interactionCreate", async interaction => {
 
-  // ===== أوامر السلاش =====
-const { EmbedBuilder } = require("discord.js");
-
-client.on("interactionCreate", async interaction => {
-
+  // أمر السلاش /panel
   if (interaction.isChatInputCommand()) {
     if (interaction.commandName === "panel") {
 
       const embed = new EmbedBuilder()
         .setColor("#2b2d31")
-        .setImage("https://cdn.discordapp.com/attachments/1354053278081613824/1476625407540334592/Fate.png?ex=69a1ce13&is=69a07c93&hm=9a5c4149968382898cbc6ffd6d13bf38dd8a7de88e407bfedcdb9a072ca892c0&") // ← الصق رابط صورتك هنا
+        .setImage("https://cdn.discordapp.com/attachments/1354053278081613824/1476625407540334592/Fate.png?ex=69a1ce13&is=69a07c93&hm=9a5c4149968382898cbc6ffd6d13bf38dd8a7de88e407bfedcdb9a072ca892c0&") // رابط الصورة
         .setFooter({ text: "VanctaCrew" });
 
       const row1 = new ActionRowBuilder()
@@ -69,84 +65,18 @@ client.on("interactionCreate", async interaction => {
     }
   }
 
+  // عند الضغط على زر
   if (interaction.isButton()) {
-
     const role = interaction.guild.roles.cache.find(r => r.name === interaction.customId);
 
-    if (!role)
+    if (!role) {
       return interaction.reply({ content: "❌ الرتبة غير موجودة", ephemeral: true });
-
-    await interaction.member.roles.add(role);
-
-    return interaction.reply({
-      content: `✅ تم إعطائك رتبة ${role.name}`,
-      ephemeral: true
-    });
-  }
-
-});
-
-      // الصف الأول (1-5)
-      for (let i = 1; i <= 5; i++) {
-        row1.addComponents(
-          new ButtonBuilder()
-            .setCustomId(`${i}`)
-            .setLabel(`${i}`)
-            .setStyle(ButtonStyle.Primary)
-        );
-      }
-
-      // الصف الثاني (6-10)
-      for (let i = 6; i <= 10; i++) {
-        row2.addComponents(
-          new ButtonBuilder()
-            .setCustomId(`${i}`)
-            .setLabel(`${i}`)
-            .setStyle(ButtonStyle.Primary)
-        );
-      }
-
-      const colors = new ActionRowBuilder().addComponents(
-        new StringSelectMenuBuilder()
-          .setCustomId("colors")
-          .setPlaceholder("اختر لونك")
-          .addOptions([
-            { label: "Red", value: "Red" },
-            { label: "Blue", value: "Blue" },
-            { label: "Green", value: "Green" }
-          ])
-      );
-
-      return interaction.reply({
-        content: "🎭 اختر مستواك أو لونك:",
-        components: [row1, row2, colors]
-      });
     }
-  }
-
-  // ===== الأزرار =====
-  if (interaction.isButton()) {
-    const role = interaction.guild.roles.cache.find(r => r.name === interaction.customId);
-
-    if (!role)
-      return interaction.reply({ content: "❌ الرتبة غير موجودة", ephemeral: true });
 
     await interaction.member.roles.add(role);
+
     return interaction.reply({ content: `✅ تم إعطائك رتبة ${role.name}`, ephemeral: true });
   }
-
-  // ===== قائمة الألوان =====
-  if (interaction.isStringSelectMenu()) {
-    const role = interaction.guild.roles.cache.find(r => r.name === interaction.values[0]);
-
-    if (!role)
-      return interaction.reply({ content: "❌ اللون غير موجود", ephemeral: true });
-
-    await interaction.member.roles.add(role);
-    return interaction.reply({ content: `🎨 تم اختيار لون ${role.name}`, ephemeral: true });
-  }
-
 });
 
 client.login(process.env.TOKEN);
-

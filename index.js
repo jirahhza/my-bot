@@ -1,181 +1,93 @@
-const fs = require("fs");
+require("dotenv").config();
 const {
-    Client,
-    GatewayIntentBits,
-    EmbedBuilder,
-    ActionRowBuilder,
-    ButtonBuilder,
-    ButtonStyle,
-    ModalBuilder,
-    TextInputBuilder,
-    TextInputStyle,
-    InteractionType
+  Client,
+  GatewayIntentBits,
+  Partials,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  StringSelectMenuBuilder,
+  Events
 } = require("discord.js");
-const token = process.env.TOKEN
 
-// ================== تشغيل العميل ==================
 const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent
-    ],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers
+  ],
+  partials: [Partials.Channel]
 });
 
-// ================== الإعدادات ==================
-const LOGS = {
-    REPORTS_LOG: "1372556238436700202" // آيدي روم التقارير
-};
-
-const FILES = {
-    PTS: "./points.json"
-};
-
-const pendingReports = new Map();
-
-// ================== تحميل النقاط ==================
-let points = fs.existsSync(FILES.PTS)
-    ? JSON.parse(fs.readFileSync(FILES.PTS, "utf8"))
-    : {};
-
-const savePoints = () => {
-    fs.writeFileSync(FILES.PTS, JSON.stringify(points, null, 2));
-};
-
-// ================== Ready ==================
 client.once("ready", () => {
-    console.log(`✅ البوت شغال: ${client.user.tag}`);
+  console.log(`✅ Logged in as ${client.user.tag}`);
 });
 
-// ================== أوامر الكتابة ==================
-client.on("messageCreate", async (msg) => {
-    if (msg.author.bot) return;
+// أمر إرسال لوحة الرتب
+client.on("interactionCreate", async interaction => {
 
-    // فتح لوحة التقارير
-    if (msg.content === "!police_panel") {
-        const embed = new EmbedBuilder()
-            .setTitle("🚨 نظام التقارير الجنائية")
-            .setDescription("اضغط الزر لرفع تقرير على مجرم")
-            .setColor("Blue");
+  // زر الرتب
+  if (interaction.isButton()) {
+    const role = interaction.guild.roles.cache.find(r => r.name === interaction.customId);
 
-        const row = new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-                .setCustomId("report")
-                .setLabel("📄 رفع تقرير")
-                .setStyle(ButtonStyle.Danger)
-        );
+    if (!role) return interaction.reply({ content: "❌ الرتبة غير موجودة", ephemeral: true });
 
-        return msg.channel.send({ embeds: [embed], components: [row] });
-    }
+    await interaction.member.roles.add(role);
+    await interaction.reply({ content: `✅ تم إعطائك رتبة ${role.name}`, ephemeral: true });
+  }
 
-    // استقبال صورة التقرير
-    if (
-        pendingReports.has(msg.author.id) &&
-        msg.attachments.size > 0
-    ) {
-        const data = pendingReports.get(msg.author.id);
+  // قائمة الألوان
+  if (interaction.isStringSelectMenu()) {
+    const role = interaction.guild.roles.cache.find(r => r.name === interaction.values[0]);
 
-        const logChannel = await client.channels.fetch(LOGS.REPORTS_LOG).catch(() => null);
-        if (!logChannel) return;
+    if (!role) return interaction.reply({ content: "❌ اللون غير موجود", ephemeral: true });
 
-        const embed = new EmbedBuilder()
-            .setTitle("🚨 تقرير جنائي")
-            .setColor("Red")
-            .addFields(
-                { name: "👮 العسكري", value: `<@${msg.author.id}>` },
-                { name: "🆔 البصمة", value: data.p },
-                { name: "👤 الاسم", value: data.n },
-                { name: "⚖️ التهمة", value: data.c },
-                { name: "📄 المخالفة", value: data.v },
-                { name: "⏳ مدة السجن", value: data.s }
-            )
-            .setImage(msg.attachments.first().url)
-            .setTimestamp();
-
-        await logChannel.send({ embeds: [embed] });
-
-        // نقاط
-        points[msg.author.id] = (points[msg.author.id] || 0) + 5;
-        savePoints();
-
-        // حذف الصورة
-        await msg.delete().catch(() => {});
-
-        pendingReports.delete(msg.author.id);
-
-        const done = await msg.channel.send("✅ تم إرسال التقرير بنجاح");
-        setTimeout(() => done.delete().catch(() => {}), 4000);
-    }
+    await interaction.member.roles.add(role);
+    await interaction.reply({ content: `🎨 تم اختيار لون ${role.name}`, ephemeral: true });
+  }
 });
 
-// ================== التفاعلات ==================
-client.on("interactionCreate", async (i) => {
+// أمر سلاش لإنشاء اللوحة
+client.on("ready", async () => {
+  const data = [{
+    name: "panel",
+    description: "إرسال لوحة الرتب"
+  }];
 
-    // زر التقرير
-    if (i.isButton() && i.customId === "report") {
-        const modal = new ModalBuilder()
-            .setCustomId("rep_modal")
-            .setTitle("🚨 تقرير جنائي");
-
-        modal.addComponents(
-            new ActionRowBuilder().addComponents(
-                new TextInputBuilder()
-                    .setCustomId("p")
-                    .setLabel("البصمة")
-                    .setStyle(TextInputStyle.Short)
-                    .setRequired(true)
-            ),
-            new ActionRowBuilder().addComponents(
-                new TextInputBuilder()
-                    .setCustomId("n")
-                    .setLabel("اسم المتهم")
-                    .setStyle(TextInputStyle.Short)
-                    .setRequired(true)
-            ),
-            new ActionRowBuilder().addComponents(
-                new TextInputBuilder()
-                    .setCustomId("c")
-                    .setLabel("التهمة")
-                    .setStyle(TextInputStyle.Short)
-                    .setRequired(true)
-            ),
-            new ActionRowBuilder().addComponents(
-                new TextInputBuilder()
-                    .setCustomId("v")
-                    .setLabel("المخالفة")
-                    .setStyle(TextInputStyle.Short)
-                    .setRequired(true)
-            ),
-            new ActionRowBuilder().addComponents(
-                new TextInputBuilder()
-                    .setCustomId("s")
-                    .setLabel("مدة السجن")
-                    .setStyle(TextInputStyle.Short)
-                    .setRequired(true)
-            )
-        );
-
-        return i.showModal(modal);
-    }
-
-    // استلام النموذج
-    if (i.type === InteractionType.ModalSubmit && i.customId === "rep_modal") {
-        pendingReports.set(i.user.id, {
-            p: i.fields.getTextInputValue("p"),
-            n: i.fields.getTextInputValue("n"),
-            c: i.fields.getTextInputValue("c"),
-            v: i.fields.getTextInputValue("v"),
-            s: i.fields.getTextInputValue("s"),
-        });
-
-        return i.reply({
-            content: "📸 أرسل صورة المتهم الآن في نفس الروم",
-            ephemeral: true
-        });
-    }
+  await client.application.commands.set(data);
 });
 
-// ================== تشغيل ==================
-console.log("TOKEN:", process.env.TOKEN);
+client.on("interactionCreate", async interaction => {
+  if (!interaction.isChatInputCommand()) return;
+
+  if (interaction.commandName === "panel") {
+
+    const buttons = new ActionRowBuilder();
+
+    for (let i = 1; i <= 10; i++) {
+      buttons.addComponents(
+        new ButtonBuilder()
+          .setCustomId(`${i}`)
+          .setLabel(`${i}`)
+          .setStyle(ButtonStyle.Primary)
+      );
+    }
+
+    const colors = new ActionRowBuilder().addComponents(
+      new StringSelectMenuBuilder()
+        .setCustomId("colors")
+        .setPlaceholder("اختر لونك")
+        .addOptions([
+          { label: "Red", value: "Red" },
+          { label: "Blue", value: "Blue" },
+          { label: "Green", value: "Green" }
+        ])
+    );
+
+    await interaction.reply({
+      content: "🎭 اختر مستواك أو لونك:",
+      components: [buttons, colors]
+    });
+  }
+});
+
 client.login(process.env.TOKEN);
-

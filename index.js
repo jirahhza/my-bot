@@ -25,25 +25,62 @@ client.once("ready", () => {
 // أمر إرسال لوحة الرتب
 client.on("interactionCreate", async interaction => {
 
-  // زر الرتب
+  // ====== أوامر السلاش ======
+  if (interaction.isChatInputCommand()) {
+
+    if (interaction.commandName === "panel") {
+
+      const { ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require("discord.js");
+
+      const buttons = new ActionRowBuilder();
+
+      for (let i = 1; i <= 10; i++) {
+        buttons.addComponents(
+          new ButtonBuilder()
+            .setCustomId(`${i}`)
+            .setLabel(`${i}`)
+            .setStyle(ButtonStyle.Primary)
+        );
+      }
+
+      const colors = new ActionRowBuilder().addComponents(
+        new StringSelectMenuBuilder()
+          .setCustomId("colors")
+          .setPlaceholder("اختر لونك")
+          .addOptions([
+            { label: "Red", value: "Red" },
+            { label: "Blue", value: "Blue" },
+            { label: "Green", value: "Green" }
+          ])
+      );
+
+      return interaction.reply({
+        content: "🎭 اختر مستواك أو لونك:",
+        components: [buttons, colors]
+      });
+    }
+  }
+
+  // ====== الأزرار ======
   if (interaction.isButton()) {
     const role = interaction.guild.roles.cache.find(r => r.name === interaction.customId);
 
     if (!role) return interaction.reply({ content: "❌ الرتبة غير موجودة", ephemeral: true });
 
     await interaction.member.roles.add(role);
-    await interaction.reply({ content: `✅ تم إعطائك رتبة ${role.name}`, ephemeral: true });
+    return interaction.reply({ content: `✅ تم إعطائك رتبة ${role.name}`, ephemeral: true });
   }
 
-  // قائمة الألوان
+  // ====== قائمة الألوان ======
   if (interaction.isStringSelectMenu()) {
     const role = interaction.guild.roles.cache.find(r => r.name === interaction.values[0]);
 
     if (!role) return interaction.reply({ content: "❌ اللون غير موجود", ephemeral: true });
 
     await interaction.member.roles.add(role);
-    await interaction.reply({ content: `🎨 تم اختيار لون ${role.name}`, ephemeral: true });
+    return interaction.reply({ content: `🎨 تم اختيار لون ${role.name}`, ephemeral: true });
   }
+
 });
 
 // أمر سلاش لإنشاء اللوحة
@@ -91,3 +128,4 @@ client.on("interactionCreate", async interaction => {
 });
 
 client.login(process.env.TOKEN);
+

@@ -61,7 +61,7 @@ client.once(Events.ClientReady, async () => {
 
 /* ========= عند اختيار رول ========= */
 
-client.on(Events.InteractionCreate, async interaction => {
+client.on('interactionCreate', async interaction => {
   if (!interaction.isStringSelectMenu()) return;
   if (interaction.customId !== 'level_select') return;
 
@@ -69,47 +69,26 @@ client.on(Events.InteractionCreate, async interaction => {
   const guild = interaction.guild;
   const selectedRoleId = interaction.values[0];
 
-  const botMember = guild.members.me;
-
   try {
-    // تأكد من صلاحية البوت
-    if (!botMember.permissions.has(PermissionsBitField.Flags.ManageRoles))
-      return interaction.reply({ content: '❌ البوت ما عنده صلاحية Manage Roles', ephemeral: true });
-
-    // جلب الرول
-    await guild.roles.fetch();
     const role = guild.roles.cache.get(selectedRoleId);
     if (!role) return interaction.reply({ content: '❌ الرول غير موجود', ephemeral: true });
 
-    if (role.position >= botMember.roles.highest.position)
-      return interaction.reply({ content: '❌ رتبة البوت أقل من الرول', ephemeral: true });
-
-    // إزالة كل الرولات القديمة
-    const rolesToRemove = member.roles.cache.filter(r => CONFIG.roleIds.includes(r.id));
-    if (rolesToRemove.size > 0) await member.roles.remove(rolesToRemove);
-
-    // إضافة الرول الجديد
+    await member.roles.remove(member.roles.cache.filter(r => CONFIG.roleIds.includes(r.id)));
     await member.roles.add(role);
 
-    // الرد الأول على الـ Interaction
-    await interaction.reply({ content: `✅ تم تحديث مستواك إلى ${role.name}`, ephemeral: true });
-
-    // إرسال Embed جديد في نفس القناة (مره ثانية)
-    const channel = await guild.channels.fetch(CONFIG.channelId);
-    const embed = new EmbedBuilder()
-      .setColor('#2b2d31')
-      .setTitle(`مرحبا ${member.user.username}`)
-      .setDescription(`تم تحديث الرول الخاص بك إلى ${role.name}`)
-      .setImage(CONFIG.imageUrl);
-
-    await channel.send({ embeds: [embed] });
+    // الرسالة تكون بين العضو والبوت فقط
+    await interaction.reply({
+      content: `✅ تم تحديث مستواك إلى ${role.name}`,
+      ephemeral: true
+    });
 
   } catch (err) {
     console.error(err);
     if (!interaction.replied)
-      await interaction.reply({ content: '❌ حصل خطأ أثناء إعطاء الرول', ephemeral: true });
+      await interaction.reply({ content: '❌ حصل خطأ أثناء تحديث الرول', ephemeral: true });
   }
 });
 
 client.login(process.env.TOKEN);
+
 

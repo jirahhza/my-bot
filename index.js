@@ -79,7 +79,7 @@ client.on('interactionCreate', async interaction => {
     // الرسالة تكون بين العضو والبوت فقط
     await interaction.reply({
       content: `**تم تغير اللون .** ${role.name}`,
-      ephemeral: true
+      ephemeral: false
     });
 
   } catch (err) {
@@ -90,6 +90,7 @@ client.on('interactionCreate', async interaction => {
 });
 
 client.login(process.env.TOKEN);
+
 
 
 

@@ -20,17 +20,18 @@ const client = new Client({
 const CONFIG = {
   channelId: '1349906852909027399',
   imageUrl: 'https://i.postimg.cc/wx4NMvbs/Fate.png',
+const CONFIG = {
   roleIds: [
-    'ROLE_ID_1',
-    'ROLE_ID_2',
-    'ROLE_ID_3',
-    'ROLE_ID_4',
-    'ROLE_ID_5',
-    'ROLE_ID_6',
-    'ROLE_ID_7',
-    'ROLE_ID_8',
-    'ROLE_ID_9',
-    'ROLE_ID_10'
+    '1476625887712510134', // ROLE_ID_1
+    '1476631730730434600', // ROLE_ID_2
+    '1476631739957776505', // ROLE_ID_3
+    '1476631747025309930', // ROLE_ID_4
+    '1476631754860134622', // ROLE_ID_5
+    '987654321098765432', // ROLE_ID_6
+    '987654321098765432', // ROLE_ID_7
+    '987654321098765432', // ROLE_ID_8
+    '987654321098765432', // ROLE_ID_9
+    '987654321098765432', // ROLE_ID_10
   ]
 };
 
@@ -125,4 +126,5 @@ client.on(Events.InteractionCreate, async interaction => {
 });
 
 client.login(process.env.TOKEN);
+
 

@@ -76,55 +76,44 @@ client.on(Events.InteractionCreate, async interaction => {
 
   const botMember = guild.members.me;
 
-  // تأكد من صلاحية Manage Roles
-  if (!botMember.permissions.has(PermissionsBitField.Flags.ManageRoles)) {
-    return interaction.reply({
-      content: '❌ البوت ما عنده صلاحية Manage Roles',
-      ephemeral: true
-    });
-  }
-
-  const role = guild.roles.cache.get(selectedRoleId);
-  if (!role) {
-    return interaction.reply({
-      content: '❌ الرول غير موجود',
-      ephemeral: true
-    });
-  }
-
-  if (role.position >= botMember.roles.highest.position) {
-    return interaction.reply({
-      content: '❌ رتبة البوت لازم تكون أعلى من الرتب',
-      ephemeral: true
-    });
-  }
-
   try {
-    // إزالة كل رولات المستويات السابقة
-    const rolesToRemove = member.roles.cache.filter(r =>
-      CONFIG.roleIds.includes(r.id)
-    );
+    // تأكد من صلاحية البوت
+    if (!botMember.permissions.has(PermissionsBitField.Flags.ManageRoles))
+      return interaction.reply({ content: '❌ البوت ما عنده صلاحية Manage Roles', ephemeral: true });
 
-    await member.roles.remove(rolesToRemove);
+    // جلب الرول
+    await guild.roles.fetch();
+    const role = guild.roles.cache.get(selectedRoleId);
+    if (!role) return interaction.reply({ content: '❌ الرول غير موجود', ephemeral: true });
+
+    if (role.position >= botMember.roles.highest.position)
+      return interaction.reply({ content: '❌ رتبة البوت أقل من الرول', ephemeral: true });
+
+    // إزالة كل الرولات القديمة
+    const rolesToRemove = member.roles.cache.filter(r => CONFIG.roleIds.includes(r.id));
+    if (rolesToRemove.size > 0) await member.roles.remove(rolesToRemove);
 
     // إضافة الرول الجديد
     await member.roles.add(role);
 
-    await interaction.reply({
-      content: `✅ تم تحديث مستواك إلى ${role.name}`,
-      ephemeral: true
-    });
+    // الرد الأول على الـ Interaction
+    await interaction.reply({ content: `✅ تم تحديث مستواك إلى ${role.name}`, ephemeral: true });
+
+    // إرسال Embed جديد في نفس القناة (مره ثانية)
+    const channel = await guild.channels.fetch(CONFIG.channelId);
+    const embed = new EmbedBuilder()
+      .setColor('#2b2d31')
+      .setTitle(`مرحبا ${member.user.username}`)
+      .setDescription(`تم تحديث الرول الخاص بك إلى ${role.name}`)
+      .setImage(CONFIG.imageUrl);
+
+    await channel.send({ embeds: [embed] });
 
   } catch (err) {
     console.error(err);
-    await interaction.reply({
-      content: '❌ حصل خطأ أثناء تحديث الرول',
-      ephemeral: true
-    });
+    if (!interaction.replied)
+      await interaction.reply({ content: '❌ حصل خطأ أثناء إعطاء الرول', ephemeral: true });
   }
 });
 
 client.login(process.env.TOKEN);
-
-
-

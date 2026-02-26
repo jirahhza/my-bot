@@ -30,7 +30,7 @@ client.once(Events.ClientReady, async () => {
 
   const embed = new EmbedBuilder()
     .setColor('#2b2d31')
-    .setImage('https://cdn.discordapp.com/attachments/1354053278081613824/1476625407540334592/Fate.png?ex=69a1ce13&is=69a07c93&hm=9a5c4149968382898cbc6ffd6d13bf38dd8a7de88e407bfedcdb9a072ca892c0&'); // رابط الصورة
+    .setImage('file:///C:/Users/EdarhNet/OneDrive/%D8%B3%D8%B7%D8%AD%20%D8%A7%D9%84%D9%85%D9%83%D8%AA%D8%A8/Fate.png'); // رابط الصورة
 
   const selectMenu = new ActionRowBuilder().addComponents(
     new StringSelectMenuBuilder()

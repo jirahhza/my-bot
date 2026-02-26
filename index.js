@@ -19,7 +19,7 @@ const client = new Client({
 
 const CONFIG = {
   channelId: '1349906852909027399',
-  imageUrl: 'https://i.postimg.cc/wx4NMvbs/Fate.png',
+  imageUrl: 'https://i.postimg.cc/yx4g0f2z/IMG-0269.png',
   roleIds: [
     '1476625887712510134', // ROLE_ID_1
     '1476631730730434600', // ROLE_ID_2
@@ -90,6 +90,7 @@ client.on('interactionCreate', async interaction => {
 });
 
 client.login(process.env.TOKEN);
+
 
 
 

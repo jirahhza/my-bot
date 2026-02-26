@@ -19,7 +19,7 @@ const client = new Client({
 
 const CONFIG = {
   channelId: '1349906852909027399',
-  imageUrl: 'file:///C:/Users/EdarhNet/OneDrive/%D8%B3%D8%B7%D8%AD%20%D8%A7%D9%84%D9%85%D9%83%D8%AA%D8%A8/Fate.png',
+  imageUrl: 'https://i.postimg.cc/wx4NMvbs/Fate.png',
   roleIds: [
     'ROLE_ID_1',
     'ROLE_ID_2',
@@ -125,3 +125,4 @@ client.on(Events.InteractionCreate, async interaction => {
 });
 
 client.login(process.env.TOKEN);
+

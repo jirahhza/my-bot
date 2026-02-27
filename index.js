@@ -32,7 +32,7 @@ const CONFIG = {
     '1476302940313747589', // ROLE_ID_9
     '1476302938824642645', // ROLE_ID_10
   ]
-};
+}; 
 
 /* ========= عند تشغيل البوت ========= */
 
@@ -95,6 +95,7 @@ client.on('interactionCreate', async interaction => {
 });
 
 client.login(process.env.TOKEN);
+
 
 
 
